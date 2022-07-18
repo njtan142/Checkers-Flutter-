@@ -1,55 +1,104 @@
 import 'package:flutter/material.dart';
 
+/*
+This is a casual game app made in flutter
+
+Code Breakdown:
+  > initializing enums for the game to be used as states
+    > There are 3 enums
+      > PieceState: the state of the piece
+      > GameState: the state of the game
+      > TurnState: the state of the turn
+
+  > initializing the game board
+    > There are 2 arrays that will be used for gamestate and move validation
+      > widgetPiecesArray: the array that will hold the widget pieces, to change the state of the piece
+      > piecesArray: the array that will hold the pieces, to check if the move is valid and which piece to change the state of
+        > the function initializeGame() will put the initial pieces in the piecesArray
+
+
+ */
+
 //global variables
 // two dimensional aray with 8 rows and 8 columns
 
-// enums to represent states of the board
-enum Player { player1, player2, empty, outOfBounds }
+enum PieceState {
+  player1,
+  player2,
+  empty,
+  outOfBounds
+} //represents the state of a cell(tells what kind of cell it is)
 
-enum Turn { player1, player2 }
+enum TurnState { player1, player2 } //represents the turn of the player
 
-enum GameState {
-  currentTurn,
-  nextTurn,
-}
+enum GameState { currentTurn, nextTurn } //represents the state of the game
 
-Turn turn = Turn.player1;
+TurnState turn = TurnState.player1; //initial turn
 
-GameState gameState = GameState.nextTurn;
+GameState gameState = GameState.nextTurn; //initial state of the game
 
-var pieces = <CheckerPiece>[];
-var cell = [
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-];
+var widgetPiecesArray = <CheckerPiece>[]; //array of checker pieces by widget
 
-void putPiece(int row, int col, Player player) {
-  if (player == Player.player1) {
-    cell[row][col] = 1;
+var piecesArray = [
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+]; //array of checker pieces by int(to represent what type of piece is in the cell)
+
+void putPiece(int row, int col, PieceState player) {
+  if (player == PieceState.player1) {
+    piecesArray[row][col] = 1;
+  } else if (player == PieceState.player2) {
+    piecesArray[row][col] = 2;
+  } else if (player == PieceState.empty) {
+    piecesArray[row][col] = 0;
   } else {
-    cell[row][col] = 2;
+    piecesArray[row][col] = -1;
   }
 }
 
 void initializeGame() {
   // put pieces on the board, row 1 to 3 are player 1, row 6 to 8 are player 2
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < 8; i++) {
     for (int j = 0; j < 8; j++) {
       if ((i + j) % 2 == 1) {
-        putPiece(i, j, Player.player1);
+        if (i < 3) {
+          putPiece(i, j, PieceState.player1);
+        } else if (i > 4) {
+          putPiece(i, j, PieceState.player2);
+        } else {
+          putPiece(i, j, PieceState.empty);
+        }
+      } else {
+        putPiece(i, j, PieceState.outOfBounds);
       }
     }
   }
-  for (int i = 5; i < 8; i++) {
+}
+
+void putPieces() {
+  for (int i = 0; i < 8; i++) {
     for (int j = 0; j < 8; j++) {
-      if ((i + j) % 2 == 1) {
-        putPiece(i, j, Player.player2);
+      if (piecesArray[i][j] == -1) {
+        widgetPiecesArray.add(CheckerPiece(
+            hue: Colors.white,
+            row: i,
+            column: j,
+            player: PieceState.outOfBounds));
+      } else if (piecesArray[i][j] == 0) {
+        widgetPiecesArray.add(CheckerPiece(
+            hue: Colors.black, row: i, column: j, player: PieceState.empty));
+      } else if (piecesArray[i][j] == 1) {
+        widgetPiecesArray.add(CheckerPiece(
+            hue: Colors.black, row: i, column: j, player: PieceState.player1));
+      } else if (piecesArray[i][j] == 2) {
+        widgetPiecesArray.add(CheckerPiece(
+            hue: Colors.black, row: i, column: j, player: PieceState.player2));
       }
     }
   }
@@ -57,7 +106,6 @@ void initializeGame() {
 
 void main() {
   runApp(const MyApp());
-  initializeGame();
 }
 
 class MyApp extends StatelessWidget {
@@ -94,10 +142,10 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Container(
+            SizedBox(
               width: MediaQuery.of(context).size.height * 0.70,
               height: MediaQuery.of(context).size.height * 0.70,
-              child: CheckerBoard(),
+              child: const CheckerBoard(),
             )
           ],
         ),
@@ -109,43 +157,15 @@ class _MyHomePageState extends State<MyHomePage> {
 class CheckerBoard extends StatelessWidget {
   const CheckerBoard({Key? key}) : super(key: key);
 
-  void putPieces() {
-    for (int i = 0; i < 8; i++) {
-      for (int j = 0; j < 8; j++) {
-        if (i < 3) {
-          pieces.add(CheckerPiece(
-            hue: (i + j) % 2 == 1 ? Colors.black : Colors.white,
-            row: i,
-            column: j,
-            player: (i + j) % 2 == 1 ? Player.player1 : Player.outOfBounds,
-          ));
-        } else if (i > 4) {
-          pieces.add(CheckerPiece(
-            hue: (i + j) % 2 == 1 ? Colors.black : Colors.white,
-            row: i,
-            column: j,
-            player: (i + j) % 2 == 1 ? Player.player2 : Player.outOfBounds,
-          ));
-        } else {
-          pieces.add(CheckerPiece(
-            hue: (i + j) % 2 == 1 ? Colors.black : Colors.white,
-            row: i,
-            column: j,
-            player: (i + j) % 2 == 1 ? Player.empty : Player.outOfBounds,
-          ));
-        }
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    initializeGame();
     putPieces();
     return GridView.count(
       crossAxisCount: 8,
       scrollDirection: Axis.vertical,
       shrinkWrap: true,
-      children: pieces,
+      children: widgetPiecesArray,
     );
   }
 }
@@ -156,7 +176,7 @@ class CheckerPiece extends StatefulWidget {
   final int row;
   final int column;
 
-  Player player;
+  PieceState player;
 
   CheckerPiece(
       {Key? key,
@@ -177,10 +197,11 @@ class _CheckerpieceState extends State<CheckerPiece> {
   late double size;
 
   Text _checkplayer() {
-    if (widget.player == Player.player1 && widget.hue == Colors.black) {
+    if (widget.player == PieceState.player1 && widget.hue == Colors.black) {
       return Text("⬤",
           style: TextStyle(color: Colors.red, fontSize: size * 0.0625));
-    } else if (widget.player == Player.player2 && widget.hue == Colors.black) {
+    } else if (widget.player == PieceState.player2 &&
+        widget.hue == Colors.black) {
       return Text("⬤",
           style: TextStyle(color: Colors.blue, fontSize: size * 0.0625));
     } else {
@@ -205,26 +226,26 @@ class _CheckerpieceState extends State<CheckerPiece> {
     }
   }
 
-  void setPlayerState(Player player) {
+  void setPlayerState(PieceState player) {
     setState(() {
       widget.player = player;
     });
   }
 
-  void checkTurn(Player currentPlayer, Turn nextTurn) {
+  void checkTurn(PieceState currentPlayer, TurnState nextTurn) {
     if (widget.player == currentPlayer) {
-      putPiece(widget.row, widget.column, Player.player1);
+      putPiece(widget.row, widget.column, PieceState.player1);
       if (gameState == GameState.nextTurn) {
         gameState = GameState.currentTurn;
-        setPlayerState(Player.empty);
+        setPlayerState(PieceState.empty);
         _setPiece();
       }
     } else {
-      if (widget.player == Player.outOfBounds) {
-        setPlayerState(Player.empty);
+      if (widget.player == PieceState.outOfBounds) {
+        setPlayerState(PieceState.empty);
         _setPiece();
       } else if (gameState == GameState.currentTurn) {
-        if (widget.player == Player.empty) {
+        if (widget.player == PieceState.empty) {
           gameState = GameState.nextTurn;
           setPlayerState(currentPlayer);
           _setPiece();
@@ -240,10 +261,10 @@ class _CheckerpieceState extends State<CheckerPiece> {
     _setPiece();
     return GestureDetector(
       onTap: () {
-        if (turn == Turn.player1) {
-          checkTurn(Player.player1, Turn.player2);
+        if (turn == TurnState.player1) {
+          checkTurn(PieceState.player1, TurnState.player2);
         } else {
-          checkTurn(Player.player2, Turn.player1);
+          checkTurn(PieceState.player2, TurnState.player1);
         }
       },
       child: Container(
